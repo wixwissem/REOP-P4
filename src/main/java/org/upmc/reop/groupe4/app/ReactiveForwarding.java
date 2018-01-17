@@ -87,6 +87,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -204,7 +205,7 @@ public class ReactiveForwarding {
 
     private ExecutorService blackHoleExecutor;
 
-
+    private static int nextPath=1;
     @Activate
     public void activate(ComponentContext context) {
         KryoNamespace.Builder metricSerializer = KryoNamespace.newBuilder()
@@ -513,17 +514,43 @@ public class ReactiveForwarding {
             // destination edge switch.
             Set<Path> paths =
                     topologyService.getPaths(topologyService.currentTopology(),
-                                             pkt.receivedFrom().deviceId(),
-                                             dst.location().deviceId());
+                            pkt.receivedFrom().deviceId(),
+                            dst.location().deviceId());
             if (paths.isEmpty()) {
                 // If there are no paths, flood and bail.
                 flood(context, macMetrics);
                 return;
             }
+            Path path=null;
+            if(paths.size()==3) {
+                Path[] tabPaths = paths.toArray(new Path[paths.size()]);
+                System.out.println("++++++++" + nextPath);
+
+                if (nextPath == 1) {
+                    path = tabPaths[0];
+                    //path = paths.get(0);
+                    nextPath = 2;
+                    System.out.println("JE PASSE PAR 1");
+                }
+                if (nextPath == 2) {
+                    path = tabPaths[2];
+                    // path = paths.get(1);
+                    nextPath = 3;
+                    System.out.println("JE PASSE PAR 2");
+                }
+                if (nextPath == 3) {
+                    path = tabPaths[2];
+                    //path = paths.get(2);
+                    nextPath = 1;
+                    System.out.println("JE PASSE PAR 3");
+                }
+            }
 
             // Otherwise, pick a path that does not lead back to where we
             // came from; if no such path, flood and bail.
-            Path path = pickForwardPathIfPossible(paths, pkt.receivedFrom().port());
+            else {path = pickForwardPathIfPossible(paths, pkt.receivedFrom().port());
+            System.out.println("********" + nextPath);
+        }
             if (path == null) {
                 log.warn("Don't know where to go from here {} for {} -> {}",
                          pkt.receivedFrom(), ethPkt.getSourceMAC(), ethPkt.getDestinationMAC());
