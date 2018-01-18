@@ -206,6 +206,7 @@ public class ReactiveForwarding {
     private ExecutorService blackHoleExecutor;
 
     private static int nextPath=1;
+
     @Activate
     public void activate(ComponentContext context) {
         KryoNamespace.Builder metricSerializer = KryoNamespace.newBuilder()
@@ -521,35 +522,58 @@ public class ReactiveForwarding {
                 flood(context, macMetrics);
                 return;
             }
+            int sizePath = paths.size();
             Path path=null;
-            if(paths.size()==3) {
-                Path[] tabPaths = paths.toArray(new Path[paths.size()]);
-                System.out.println("++++++++" + nextPath);
+
+            if(sizePath == 3) {
+                Path[] tabPaths = paths.toArray(new Path[sizePath]);
+                log.info("+++ Num Paths = 3 +++ Val = {} +++ PKT = {} +++ DEVICE = {}",
+                        Integer.toString(nextPath),
+                        pkt.receivedFrom().hashCode(),
+                        pkt.receivedFrom().deviceId());
 
                 if (nextPath == 1) {
-                    path = tabPaths[0];
-                    //path = paths.get(0);
-                    nextPath = 2;
-                    System.out.println("JE PASSE PAR 1");
-                }
-                if (nextPath == 2) {
-                    path = tabPaths[2];
-                    // path = paths.get(1);
-                    nextPath = 3;
-                    System.out.println("JE PASSE PAR 2");
-                }
-                if (nextPath == 3) {
-                    path = tabPaths[2];
-                    //path = paths.get(2);
-                    nextPath = 1;
-                    System.out.println("JE PASSE PAR 3");
-                }
-            }
 
-            // Otherwise, pick a path that does not lead back to where we
-            // came from; if no such path, flood and bail.
-            else {path = pickForwardPathIfPossible(paths, pkt.receivedFrom().port());
-            System.out.println("********" + nextPath);
+                    path = tabPaths[0];
+
+                    log.info("In 0**01 -> nextPath = {} - PortToSend = {} - PKT = {}",
+                            Integer.toString(nextPath),
+                            path.src().port(),
+                            pkt.receivedFrom().hashCode());
+
+                    nextPath = 2;
+
+                } else if (nextPath == 2 ) {
+
+                    path = tabPaths[1];
+
+                    log.info("In 0**01 -> nextPath = {} - PortToSend = {} - PKT = {}",
+                            Integer.toString(nextPath),
+                            path.src().port(),
+                            pkt.receivedFrom().hashCode());
+
+                    nextPath = 3;
+
+                } else if (nextPath == 3 ) {
+
+                    path = tabPaths[2];
+
+                    log.info("In 3 -> nextPath = {} - PortToSend = {} - PKT = {}",
+                            Integer.toString(nextPath),
+                            path.src().port(),
+                            pkt.receivedFrom().hashCode());
+
+                    nextPath = 1;
+                    
+                }
+                // Otherwise, pick a path that does not lead back to where we
+                // came from; if no such path, flood and bail.
+            } else {
+                path = pickForwardPathIfPossible(paths, pkt.receivedFrom().port());
+            log.info("*** num paths diff de 3 *** PORT = {} *** PKT = {} *** DEVICE = {}",
+                    path.src().port(),
+                    pkt.receivedFrom().hashCode(),
+                    pkt.receivedFrom().deviceId());
         }
             if (path == null) {
                 log.warn("Don't know where to go from here {} for {} -> {}",
@@ -560,6 +584,10 @@ public class ReactiveForwarding {
 
             // Otherwise forward and be done with it.
             installRule(context, path.src().port(), macMetrics);
+            log.info("SENDING VIA port = {} - PKT = {} - DEVICE = {}",
+                    path.src().port(),
+                    pkt.receivedFrom().hashCode(),
+                    pkt.receivedFrom().deviceId());
         }
 
     }
