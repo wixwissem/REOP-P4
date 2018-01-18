@@ -526,17 +526,11 @@ public class ReactiveForwarding {
             /*
              * DEBUT DE LA MODIFICATION DU CODE
              */
-
-            //MacAddress macDiv = null;
-           // ReactiveForwardMetrics myDivMetrics = null;
             int sizePath = paths.size();
             Path path=null;
 
             if(sizePath == 3) {
-               // macDiv = ethPkt.getSourceMAC();
-               // myDivMetrics = metrics.get(macDiv);
-
-
+              
                 Path[] tabPaths = paths.toArray(new Path[sizePath]);
                 log.info("+++ Num Paths = 3 +++ Val = {} +++ PKT = {} +++ DEVICE = {}",
                         Integer.toString(nextPath),
@@ -575,8 +569,7 @@ public class ReactiveForwarding {
                     nextPath = 1;
 
                 }
-                // Otherwise, pick a path that does not lead back to where we
-                // came from; if no such path, flood and bail.
+                
             } else {
                 path = pickForwardPathIfPossible(paths, pkt.receivedFrom().port());
             log.info("*** num paths diff de 3 *** PORT = {} *** PKT = {} *** DEVICE = {}",
