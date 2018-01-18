@@ -522,10 +522,21 @@ public class ReactiveForwarding {
                 flood(context, macMetrics);
                 return;
             }
+
+            /*
+             * DEBUT DE LA MODIFICATION DU CODE
+             */
+
+            //MacAddress macDiv = null;
+           // ReactiveForwardMetrics myDivMetrics = null;
             int sizePath = paths.size();
             Path path=null;
 
             if(sizePath == 3) {
+               // macDiv = ethPkt.getSourceMAC();
+               // myDivMetrics = metrics.get(macDiv);
+
+
                 Path[] tabPaths = paths.toArray(new Path[sizePath]);
                 log.info("+++ Num Paths = 3 +++ Val = {} +++ PKT = {} +++ DEVICE = {}",
                         Integer.toString(nextPath),
@@ -535,8 +546,7 @@ public class ReactiveForwarding {
                 if (nextPath == 1) {
 
                     path = tabPaths[0];
-
-                    log.info("In 0**01 -> nextPath = {} - PortToSend = {} - PKT = {}",
+                    log.info("In 1 -> nextPath = {} - PortToSend = {} - PKT = {}",
                             Integer.toString(nextPath),
                             path.src().port(),
                             pkt.receivedFrom().hashCode());
@@ -546,8 +556,7 @@ public class ReactiveForwarding {
                 } else if (nextPath == 2 ) {
 
                     path = tabPaths[1];
-
-                    log.info("In 0**01 -> nextPath = {} - PortToSend = {} - PKT = {}",
+                    log.info("In 2 -> nextPath = {} - PortToSend = {} - PKT = {}",
                             Integer.toString(nextPath),
                             path.src().port(),
                             pkt.receivedFrom().hashCode());
@@ -564,7 +573,7 @@ public class ReactiveForwarding {
                             pkt.receivedFrom().hashCode());
 
                     nextPath = 1;
-                    
+
                 }
                 // Otherwise, pick a path that does not lead back to where we
                 // came from; if no such path, flood and bail.
@@ -575,6 +584,10 @@ public class ReactiveForwarding {
                     pkt.receivedFrom().hashCode(),
                     pkt.receivedFrom().deviceId());
         }
+
+        /*
+            ***** FIN DE LA MODIFICATION DU CODE
+         */
             if (path == null) {
                 log.warn("Don't know where to go from here {} for {} -> {}",
                          pkt.receivedFrom(), ethPkt.getSourceMAC(), ethPkt.getDestinationMAC());
